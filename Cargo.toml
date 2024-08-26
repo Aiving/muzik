@@ -1,0 +1,24 @@
+[package]
+name = "muzik"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+euclid = "0.22.10"
+indexable = { version = "0.1.0", path = "crates/indexable" }
+material-colors = { version = "0.4.0", features = ["image"] }
+reqwest = { version = "0.12.7", features = ["json"] }
+rusfit = { version = "0.1.0", path = "../../../../../../home/aiving/Documents/kz.aiving/rs/rusfit" }
+serde = { version = "1.0.204", features = ["derive"] }
+skia-safe = { version = "0.75.0", features = ["svg", "textlayout"] }
+tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros", "time"] }
+tokio-stream = "0.1.15"
+twilight-cache-inmemory = "0.15.4"
+twilight-gateway = "0.15.4"
+twilight-http = "0.15.4"
+twilight-model = "0.15.4"
+zbus = { version = "4.4.0", features = ["option-as-array", "tokio"] }
+
+[profile.release]
+strip = "debuginfo"
+opt-level = 3
