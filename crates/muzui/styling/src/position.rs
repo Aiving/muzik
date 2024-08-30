@@ -1,5 +1,3 @@
-use crate::muzui::language::parser::{Parse, Parser, Result};
-
 #[derive(Debug, Default, Clone, Copy)]
 pub enum Position {
     Absolute,
@@ -25,14 +23,14 @@ impl Position {
     }
 }
 
-impl Parse for Position {
-    fn parse(parser: &mut Parser) -> Result<Self> {
-        parser.consume_map(|token| {
-            token.try_as_ident().and_then(|ident| match ident {
-                "absolute" => Some(Self::Absolute),
-                "relative" => Some(Self::Relative),
-                _ => None,
-            })
-        })
-    }
-}
+// impl Parse for Position {
+//     fn parse(parser: &mut Parser) -> Result<Self> {
+//         parser.consume_map(|token| {
+//             token.try_as_ident().and_then(|ident| match ident {
+//                 "absolute" => Some(Self::Absolute),
+//                 "relative" => Some(Self::Relative),
+//                 _ => None,
+//             })
+//         })
+//     }
+// }

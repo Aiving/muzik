@@ -1,0 +1,8 @@
+[package]
+name = "muzui-layout"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+muzui-geometry = { path = "../geometry" }
+muzui-styling = { path = "../styling" }

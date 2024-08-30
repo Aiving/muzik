@@ -1,0 +1,11 @@
+[package]
+name = "muzui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+muzui-geometry = { path = "../geometry" }
+muzui-layout = { path = "../layout" }
+muzui-styling = { path = "../styling" }
+muzui-macros = { path = "../macros" }
+skia-safe = { workspace = true }

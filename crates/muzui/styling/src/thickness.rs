@@ -1,10 +1,4 @@
-use crate::muzui::{
-    language::{
-        lexer::Token,
-        parser::{Parse, ParseError, Parser, Result},
-    },
-    layout::{Point, Rect, Size},
-};
+use muzui_geometry::Rect;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Thickness {
@@ -43,12 +37,9 @@ impl Thickness {
     }
 }
 
-impl From<Thickness> for Rect {
+impl From<Thickness> for Rect<f32> {
     fn from(value: Thickness) -> Self {
-        Self::new(
-            Point::new(value.left, value.top),
-            Size::new(value.right, value.bottom),
-        )
+        Self::from_xywh(value.left, value.top, value.right, value.bottom)
     }
 }
 
@@ -70,18 +61,18 @@ impl From<[f32; 4]> for Thickness {
     }
 }
 
-impl Parse for Thickness {
-    fn parse(parser: &mut Parser) -> Result<Self> {
-        match [
-            parser.consume_map(Token::try_as_f32),
-            parser.consume_map(Token::try_as_f32),
-            parser.consume_map(Token::try_as_f32),
-            parser.consume_map(Token::try_as_f32),
-        ] {
-            [Ok(x), Ok(y), Ok(z), Ok(w)] => Ok([x, y, z, w].into()),
-            [Ok(x), Ok(y), ..] => Ok([x, y].into()),
-            [Ok(x), ..] => Ok(x.into()),
-            _ => Err(ParseError::new("failed to parse thickness")),
-        }
-    }
-}
+// impl Parse for Thickness {
+//     fn parse(parser: &mut Parser) -> Result<Self> {
+//         match [
+//             parser.consume_map(Token::try_as_f32),
+//             parser.consume_map(Token::try_as_f32),
+//             parser.consume_map(Token::try_as_f32),
+//             parser.consume_map(Token::try_as_f32),
+//         ] {
+//             [Ok(x), Ok(y), Ok(z), Ok(w)] => Ok([x, y, z, w].into()),
+//             [Ok(x), Ok(y), ..] => Ok([x, y].into()),
+//             [Ok(x), ..] => Ok(x.into()),
+//             _ => Err(ParseError::new("failed to parse thickness")),
+//         }
+//     }
+// }

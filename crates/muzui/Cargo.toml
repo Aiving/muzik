@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = ["layout", "geometry", "muzui", "styling", "lang", "macros"]
+
+[workspace.dependencies]
+skia-safe = { version = "0.75.0", features = ["textlayout", "svg"] }

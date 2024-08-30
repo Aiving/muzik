@@ -1,14 +1,14 @@
-use super::{
-    elements::{container::ContainerElement, image::ImageElement, text::TextElement, Element},
+use crate::{
+    graphics::Context,
     layout::{Layout, MeasureNode, Measurer, Rect},
-    style::Style,
-    Context,
+    styling::Style,
+    ContainerElement, Element, ImageElement, Masonry, TextElement,
 };
-use crate::ArgbExt;
-use builder::NodeBuilder;
+pub use builder::NodeBuilder;
 use skia_safe::{Canvas, Paint, RRect, Rect as SkRect};
+use std::fmt::Display;
 
-pub mod builder;
+mod builder;
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -19,17 +19,17 @@ pub struct Node {
 impl Node {
     #[must_use]
     pub fn column() -> NodeBuilder {
-        NodeBuilder::new(Element::Container(ContainerElement::vertical()))
+        NodeBuilder::new(Element::Container(ContainerElement::column()))
     }
 
     #[must_use]
     pub fn row() -> NodeBuilder {
-        NodeBuilder::new(Element::Container(ContainerElement::horizontal()))
+        NodeBuilder::new(Element::Container(ContainerElement::row()))
     }
 
     #[must_use]
     pub fn masonry(item_width: f32) -> NodeBuilder {
-        NodeBuilder::new(Element::Container(ContainerElement::masonry(item_width)))
+        NodeBuilder::new(Element::Masonry(Masonry::new(item_width)))
     }
 
     pub fn text(data: impl Into<String>) -> NodeBuilder {
@@ -37,11 +37,18 @@ impl Node {
     }
 
     #[must_use]
-    pub fn image(data: Vec<u8>, name: &str) -> NodeBuilder {
-        NodeBuilder::new(Element::Image(ImageElement::new(data, name)))
+    pub fn image<T: Display>(name: T, data: Vec<u8>) -> NodeBuilder {
+        NodeBuilder::new(Element::Image(ImageElement::new(name, data)))
     }
 
-    pub(super) fn draw(&self, canvas: &Canvas, context: &Context, node: MeasureNode) {
+    #[must_use]
+    pub fn into_builder(self) -> NodeBuilder {
+        let Self { style, element } = self;
+
+        NodeBuilder { style, element }
+    }
+
+    pub(crate) fn draw(&self, canvas: &Canvas, context: &Context, node: MeasureNode) {
         let rect = SkRect::from_xywh(
             node.outer.origin.x,
             node.outer.origin.y,
@@ -74,14 +81,19 @@ impl Node {
         let mut background = Paint::default();
 
         if let Some(color) = self.style.background {
-            background.set_color(color.as_color());
+            background.set_color(skia_safe::Color::new(color.as_u32()));
 
             canvas.draw_rrect(round_rect, &background);
         }
 
         match &self.element {
             Element::Container(container) => {
-                for (node, measure_node) in container.children().iter().zip(node.children) {
+                for (node, measure_node) in container.children.iter().zip(node.children) {
+                    node.draw(canvas, context, measure_node);
+                }
+            }
+            Element::Masonry(masonry) => {
+                for (node, measure_node) in masonry.children.iter().zip(node.children) {
                     node.draw(canvas, context, measure_node);
                 }
             }
@@ -89,10 +101,10 @@ impl Node {
                 canvas.draw_image_rect(&image.data, None, rect, &background);
             }
             Element::Text(text) => {
-                let mut paragraph = context.create_paragraph(&self.style, text);
+                let mut paragraph = context.create_paragraph(&self.style, &text.data);
 
                 paragraph.layout(if node.inner.size.width == 0.0 {
-                    context.size.width
+                    context.bounds.width()
                 } else {
                     node.inner.size.width
                 });
@@ -129,10 +141,11 @@ impl Node {
     }
 }
 
-impl Measurer for Node {
+impl Measurer<Context> for Node {
     fn measure(&self, context: &Context, parent: &Rect) -> MeasureNode {
         match &self.element {
             Element::Container(container) => container.measure(context, &self.style, parent),
+            Element::Masonry(masonry) => masonry.measure(context, &self.style, parent),
             Element::Image(image) => image.measure(context, &self.style, parent),
             Element::Text(text) => text.measure(context, &self.style, parent),
         }
@@ -140,13 +153,5 @@ impl Measurer for Node {
 
     fn get_style(&self) -> &Style {
         &self.style
-    }
-
-    fn get_ty(&self) -> super::layout::NodeType {
-        match &self.element {
-            Element::Container(_) => super::layout::NodeType::Container,
-            Element::Image(_) => super::layout::NodeType::Image,
-            Element::Text(_) => super::layout::NodeType::Text,
-        }
     }
 }
