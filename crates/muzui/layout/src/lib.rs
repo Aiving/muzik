@@ -8,14 +8,28 @@ pub type Size = muzui_geometry::Size<f32>;
 
 fn eval_length(length: &Length, available_space: f32, available: Size) -> f32 {
     match length {
+        Length::Auto => 0.0,
         Length::Px(value) => *value,
         Length::Percent(value) => available_space * (*value / 100.0),
-        Length::Width => available.width,
+        Length::ParentWidth => available.width,
+        Length::ParentHeight => available.height,
         Length::Dynamic(operations) => {
             operations.iter().fold(0.0, |_, operation| match operation {
+                Operation::Add(a, b) => {
+                    eval_length(a, available_space, available)
+                        + eval_length(b, available_space, available)
+                }
+                Operation::Sub(a, b) => {
+                    eval_length(a, available_space, available)
+                        - eval_length(b, available_space, available)
+                }
                 Operation::Mul(a, b) => {
                     eval_length(a, available_space, available)
                         * eval_length(b, available_space, available)
+                }
+                Operation::Div(a, b) => {
+                    eval_length(a, available_space, available)
+                        / eval_length(b, available_space, available)
                 }
             })
         }
@@ -63,8 +77,6 @@ impl MeasureNode {
         let height = height
             .as_ref()
             .map(|height| eval_length(height, parent.size.height, parent.size));
-
-        println!("{parent:?}");
 
         let outer = Rect::new(
             if position.is_absolute() {

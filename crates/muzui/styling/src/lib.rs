@@ -10,15 +10,46 @@ mod thickness;
 
 #[derive(Debug, Clone)]
 pub enum Operation {
+    Add(Length, Length),
+    Sub(Length, Length),
     Mul(Length, Length),
+    Div(Length, Length),
+}
+
+impl Operation {
+    fn is_auto(&self) -> bool {
+        match self {
+            Self::Mul(left, right)
+            | Self::Add(left, right)
+            | Self::Sub(left, right)
+            | Self::Div(left, right) => left.is_auto() || right.is_auto(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
 pub enum Length {
+    Auto,
     Px(f32),
     Percent(f32),
-    Width,
+    ParentWidth,
+    ParentHeight,
     Dynamic(Vec<Operation>),
+}
+
+impl Length {
+    #[must_use]
+    pub fn is_auto(&self) -> bool {
+        matches!(self, Self::Auto) || self.is_dynamic_and(|ops| ops.iter().any(Operation::is_auto))
+    }
+
+    fn is_dynamic_and<F: Fn(&[Operation]) -> bool>(&self, func: F) -> bool {
+        if let Self::Dynamic(ops) = self {
+            func(ops)
+        } else {
+            false
+        }
+    }
 }
 
 #[must_use]
@@ -32,8 +63,18 @@ pub const fn percent(value: f32) -> Length {
 }
 
 #[must_use]
-pub const fn width() -> Length {
-    Length::Width
+pub const fn parent_width() -> Length {
+    Length::ParentWidth
+}
+
+#[must_use]
+pub const fn parent_height() -> Length {
+    Length::ParentHeight
+}
+
+#[must_use]
+pub const fn auto() -> Length {
+    Length::Auto
 }
 
 pub fn dynamic<T: IntoIterator<Item = Operation>>(ops: T) -> Length {
@@ -44,6 +85,10 @@ pub fn dynamic<T: IntoIterator<Item = Operation>>(ops: T) -> Length {
 pub struct Style {
     pub margin: Thickness,
     pub padding: Thickness,
+    pub row: usize,
+    pub row_span: usize,
+    pub column: usize,
+    pub column_span: usize,
     pub width: Option<Length>,
     pub height: Option<Length>,
     pub background: Option<Color>,
@@ -60,8 +105,17 @@ pub struct Style {
 
 impl Style {
     #[must_use]
+    pub fn new() -> Self {
+        Self {
+            row_span: 1,
+            column_span: 1,
+            ..Default::default()
+        }
+    }
+
+    #[must_use]
     pub fn builder() -> StyleBuilder {
-        StyleBuilder::default()
+        StyleBuilder { style: Self::new() }
     }
 }
 
@@ -93,6 +147,34 @@ impl StyleBuilder {
     #[must_use]
     pub fn corner_radius<T: Into<Thickness>>(mut self, value: T) -> Self {
         self.style.corner_radius = value.into();
+
+        self
+    }
+
+    #[must_use]
+    pub const fn row(mut self, value: usize) -> Self {
+        self.style.row = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn row_span(mut self, value: usize) -> Self {
+        self.style.row_span = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn column(mut self, value: usize) -> Self {
+        self.style.column = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn column_span(mut self, value: usize) -> Self {
+        self.style.column_span = value;
 
         self
     }

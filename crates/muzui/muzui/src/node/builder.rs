@@ -2,7 +2,7 @@ use crate::{
     styling::{
         Color, FontFamily, FontSize, FontSlant, FontWeight, Length, Position, Style, Thickness,
     },
-    Element, Node,
+    Column, Element, GridLength, Node, Row,
 };
 
 pub struct NodeBuilder {
@@ -14,7 +14,7 @@ impl NodeBuilder {
     #[must_use]
     pub fn new(element: Element) -> Self {
         Self {
-            style: Style::default(),
+            style: Style::new(),
             element,
         }
     }
@@ -24,6 +24,7 @@ impl NodeBuilder {
         match &mut self.element {
             Element::Container(element) => element.children.push(node),
             Element::Masonry(element) => element.children.push(node),
+            Element::Grid(element) => element.children.push(node),
             _ => {}
         }
 
@@ -35,8 +36,59 @@ impl NodeBuilder {
         match &mut self.element {
             Element::Container(element) => element.children.extend(nodes),
             Element::Masonry(element) => element.children.extend(nodes),
+            Element::Grid(element) => element.children.extend(nodes),
             _ => {}
         }
+
+        self
+    }
+
+    #[must_use]
+    pub fn rows<T: IntoIterator<Item = GridLength>>(mut self, rows: T) -> Self {
+        if let Element::Grid(element) = &mut self.element {
+            element
+                .rows
+                .extend(rows.into_iter().map(|height| Row { height }));
+        }
+
+        self
+    }
+
+    #[must_use]
+    pub fn columns<T: IntoIterator<Item = GridLength>>(mut self, columns: T) -> Self {
+        if let Element::Grid(element) = &mut self.element {
+            element
+                .columns
+                .extend(columns.into_iter().map(|width| Column { width }));
+        }
+
+        self
+    }
+
+    #[must_use]
+    pub const fn row(mut self, value: usize) -> Self {
+        self.style.row = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn row_span(mut self, value: usize) -> Self {
+        self.style.row_span = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn column(mut self, value: usize) -> Self {
+        self.style.column = value;
+
+        self
+    }
+
+    #[must_use]
+    pub const fn column_span(mut self, value: usize) -> Self {
+        self.style.column_span = value;
 
         self
     }
@@ -46,6 +98,7 @@ impl NodeBuilder {
         match &mut self.element {
             Element::Container(container) => container.spacing = value,
             Element::Masonry(masonry) => masonry.spacing = value,
+            Element::Grid(grid) => grid.spacing = value,
             _ => {}
         }
 

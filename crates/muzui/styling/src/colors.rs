@@ -113,10 +113,10 @@ impl Color {
 
     #[must_use]
     pub fn as_u32(&self) -> u32 {
-        (u32::from(self.red) << 24)
-            | (u32::from(self.green) << 16)
-            | (u32::from(self.blue) << 8)
-            | u32::from(self.alpha)
+        (u32::from(self.alpha) << 24)
+            | (u32::from(self.red) << 16)
+            | (u32::from(self.green) << 8)
+            | u32::from(self.blue)
     }
 }
 

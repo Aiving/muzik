@@ -1,8 +1,5 @@
 use crate::{
-    graphics::Context,
-    layout::{Layout, MeasureNode, Measurer, Rect},
-    styling::Style,
-    ContainerElement, Element, ImageElement, Masonry, TextElement,
+    graphics::Context, layout::{Layout, MeasureNode, Measurer, Rect}, styling::Style, ContainerElement, Element, GridElement, ImageElement, Masonry, TextElement
 };
 pub use builder::NodeBuilder;
 use skia_safe::{Canvas, Paint, RRect, Rect as SkRect};
@@ -25,6 +22,11 @@ impl Node {
     #[must_use]
     pub fn row() -> NodeBuilder {
         NodeBuilder::new(Element::Container(ContainerElement::row()))
+    }
+
+    #[must_use]
+    pub fn grid() -> NodeBuilder {
+        NodeBuilder::new(Element::Grid(GridElement::default()))
     }
 
     #[must_use]
@@ -97,6 +99,11 @@ impl Node {
                     node.draw(canvas, context, measure_node);
                 }
             }
+            Element::Grid(grid) => {
+                for (node, grid_node) in grid.children.iter().zip(node.children) {
+                    node.draw(canvas, context, grid_node);
+                }
+            }
             Element::Image(image) => {
                 canvas.draw_image_rect(&image.data, None, rect, &background);
             }
@@ -146,6 +153,7 @@ impl Measurer<Context> for Node {
         match &self.element {
             Element::Container(container) => container.measure(context, &self.style, parent),
             Element::Masonry(masonry) => masonry.measure(context, &self.style, parent),
+            Element::Grid(grid) => grid.measure(context, &self.style, parent),
             Element::Image(image) => image.measure(context, &self.style, parent),
             Element::Text(text) => text.measure(context, &self.style, parent),
         }

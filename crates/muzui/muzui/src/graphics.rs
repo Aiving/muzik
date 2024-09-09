@@ -1,8 +1,5 @@
 use skia_safe::{
-    font_style::{Slant, Weight, Width},
-    surfaces,
-    textlayout::{FontCollection, Paragraph, ParagraphBuilder, ParagraphStyle, TextStyle},
-    EncodedImageFormat, FontMgr, FontStyle, Surface,
+    font_style::{Slant, Weight, Width}, surfaces, textlayout::{FontCollection, Paragraph, ParagraphBuilder, ParagraphStyle, TextStyle}, EncodedImageFormat, FontMgr, FontStyle, Image, RCHandle, Surface
 };
 
 use crate::{

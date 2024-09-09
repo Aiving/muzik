@@ -9,3 +9,6 @@ muzui-layout = { path = "../layout" }
 muzui-styling = { path = "../styling" }
 muzui-macros = { path = "../macros" }
 skia-safe = { workspace = true }
+
+[dev-dependencies]
+material-colors = { path = "/home/aiving/Documents/kz.aiving/rs/m3-colors" }

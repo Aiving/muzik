@@ -33,6 +33,7 @@ enum NodeName {
     Row,
     Column,
     Masonry,
+    Grid,
     Image,
     Text,
     Custom(Ident),
@@ -112,6 +113,8 @@ impl Parse for Node {
                     NodeName::Column
                 } else if name == "Masonry" {
                     NodeName::Masonry
+                } else if name == "Grid" {
+                    NodeName::Grid
                 } else if name == "Image" {
                     NodeName::Image
                 } else if name == "Text" {
@@ -141,6 +144,7 @@ impl From<Node> for TokenStream2 {
             NodeName::Row => quote! { muzui::Node::row },
             NodeName::Column => quote! { muzui::Node::column },
             NodeName::Masonry => quote! { muzui::Node::masonry },
+            NodeName::Grid => quote! { muzui::Node::grid },
             NodeName::Image => quote! { muzui::Node::image },
             NodeName::Text => quote! { muzui::Node::text },
             NodeName::Custom(name) => {
